@@ -12,9 +12,9 @@ public:
     double price;
     double quantity;
 
-    // Constructor
-    OrderBookEntry(std::string _timestamp, std::string _currencyPair,
-                   std::string _orderType, double _price, double _quantity)
+    // Constructor (add reference for strings to avoid copying)
+    OrderBookEntry(const std::string &_timestamp, const std::string &_currencyPair,
+                   const std::string &_orderType, double _price, double _quantity)
         : timestamp(_timestamp), currencyPair(_currencyPair),
           orderType(_orderType), price(_price), quantity(_quantity) {}
 };
