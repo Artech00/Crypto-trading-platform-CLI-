@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 // Specification
 enum class OrderBookType
@@ -9,15 +10,15 @@ enum class OrderBookType
 class OrderBookEntry
 {
 public:
+    double price;
+    double amount;
     std::string timestamp;
     std::string currencyPair;
     OrderBookType orderType; // Changed to enum
-    double price;
-    double quantity;
 
-    OrderBookEntry(const std::string &_timestamp,
-                   const std::string &_currencyPair,
-                   OrderBookType _orderType,
-                   double _price,
-                   double _quantity);
+    OrderBookEntry(double _price,
+        double _amount,
+        const std::string& _timestamp,
+        const std::string& _currencyPair,
+        OrderBookType _orderType);
 };
