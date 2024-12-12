@@ -4,7 +4,8 @@
 enum class OrderBookType
 {
     bid,
-    ask
+    ask,
+    unknown // fix later with exception instead of this
 };
 
 class OrderBookEntry
@@ -17,8 +18,9 @@ public:
     OrderBookType orderType; // Changed to enum
 
     OrderBookEntry(double _price,
-        double _amount,
-        const std::string& _timestamp,
-        const std::string& _currencyPair,
-        OrderBookType _orderType);
+                   double _amount,
+                   const std::string &_timestamp,
+                   const std::string &_currencyPair,
+                   OrderBookType _orderType);
+    static OrderBookType stringToOrderBookType(std::string s);
 };
