@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include "OrderBookEntry.hpp"
+#include "OrderBook.hpp"
+
 class MerkelMain
 {
 public:
@@ -8,7 +10,6 @@ public:
     void init();
 
 private:
-    void loadOrderBook();
     void printMenu();
     void printHelp();
     void printMarketStats();
@@ -18,5 +19,8 @@ private:
     void gotoNextTimeframe();
     int getUserOption();
     void processUserOption(int userOption);
-    std::vector<OrderBookEntry> orders;
+    void DisplayMovingAverage(); 
+
+    std::string currentTime;
+    OrderBook orderBook{"average.csv"}; // info and logic now is used from OrderBook class(.hpp)
 };

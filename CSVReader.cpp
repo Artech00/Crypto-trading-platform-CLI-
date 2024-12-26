@@ -26,7 +26,13 @@ std::vector<OrderBookEntry> CSVReader::readCSV(std::string csvFilename)
 
         } // end of while
     }
-    std::cout << "CSVReader::readCSV read " << entries.size() << " entries" << std::endl;
+ 
+    // Log the result for debugging
+    if (entries.empty()) {
+        std::cout << "Warning: No orders found in the CSV file." << std::endl;
+    } else {
+        //std::cout << "Successfully read " << entries.size() << " orders from the CSV file." << std::endl;
+    }
     return entries;
 }
 

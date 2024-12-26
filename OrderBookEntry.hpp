@@ -14,13 +14,13 @@ public:
     double price;
     double amount;
     std::string timestamp;
-    std::string currencyPair;
+    std::string product;
     OrderBookType orderType; // Changed to enum
 
     OrderBookEntry(double _price,
                    double _amount,
                    const std::string &_timestamp,
-                   const std::string &_currencyPair,
+                   const std::string &_product,
                    OrderBookType _orderType);
     static OrderBookType stringToOrderBookType(std::string s);
 };
