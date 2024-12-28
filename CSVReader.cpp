@@ -26,12 +26,15 @@ std::vector<OrderBookEntry> CSVReader::readCSV(std::string csvFilename)
 
         } // end of while
     }
- 
+
     // Log the result for debugging
-    if (entries.empty()) {
+    if (entries.empty())
+    {
         std::cout << "Warning: No orders found in the CSV file." << std::endl;
-    } else {
-        //std::cout << "Successfully read " << entries.size() << " orders from the CSV file." << std::endl;
+    }
+    else
+    {
+        // std::cout << "Successfully read " << entries.size() << " orders from the CSV file." << std::endl;
     }
     return entries;
 }
@@ -88,5 +91,31 @@ OrderBookEntry CSVReader::stringsToOBE(std::vector<std::string> tokens)
                        tokens[0],
                        tokens[1],
                        OrderBookEntry::stringToOrderBookType(tokens[2])};
+    return obe;
+}
+
+OrderBookEntry CSVReader::stringsToOBE(std::string priceString,
+                                       std::string amountString,
+                                       std::string timestamp,
+                                       std::string product,
+                                       OrderBookType orderType)
+{
+    double price, amount;
+    try
+    {
+        price = std::stod(priceString);
+        amount = std::stod(amountString);
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "Error processing line(Bad float)!: " << priceString << std::endl;
+        std::cout << "Error processing line(Bad float)!: " << amountString << std::endl;
+        throw;
+    }
+    OrderBookEntry obe{price,
+                       amount,
+                       timestamp,
+                       product,
+                       orderType};
     return obe;
 }

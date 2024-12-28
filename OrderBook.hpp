@@ -20,6 +20,10 @@ public:
     /* returns the next time after the sent time in the orderbook */
     std::string getNextTime(std::string timestamp);
 
+    void insertOrder(OrderBookEntry &order);
+
+    std::vector<OrderBookEntry> matchAsksToBids(std::string product, std::string timestamp);
+
     static double getHighPrice(std::vector<OrderBookEntry> &orders);
     static double getLowPrice(std::vector<OrderBookEntry> &orders);
 
@@ -29,7 +33,7 @@ public:
      * @param timeWindow The number of most recent entries to consider for the average.
      * @return The moving average of prices.
      */
-    static double calculateMovingAverage(std::vector<OrderBookEntry>& orders, int timeWindow);
+    static double calculateMovingAverage(std::vector<OrderBookEntry> &orders, int timeWindow);
 
 private:
     std::vector<OrderBookEntry> orders;

@@ -1,11 +1,12 @@
 #include "MerkelMain.hpp"
 #include <iostream>
-#include <iomanip> // Required for std::fixed and std::setprecision
+#include <iomanip>
 #include <vector>
 #include "OrderBookEntry.hpp"
 #include "CSVReader.hpp"
 #include "OrderBook.hpp" // Include for calculateMovingAverage function
 #include <optional>      // For std::optional
+#include <limits>        // For std::numeric_limits
 
 MerkelMain::MerkelMain()
 {
@@ -46,11 +47,9 @@ void MerkelMain::printHelp()
     std::cout << "Help: Here are the options you can choose from." << std::endl;
 }
 
-
-
 void MerkelMain::printMarketStats()
 {
-    for (const std::string &p : orderBook.getKnownProducts())
+    for (std::string const &p : orderBook.getKnownProducts())
     {
         std::cout << "Product: " << p << std::endl;
 
@@ -62,11 +61,8 @@ void MerkelMain::printMarketStats()
         if (!askEntries.empty())
         {
             std::cout << "Asks seen: " << askEntries.size() << std::endl;
-
             double maxAskPrice = OrderBook::getHighPrice(askEntries);
             double minAskPrice = OrderBook::getLowPrice(askEntries);
-
-            std::cout << std::fixed << std::setprecision(9); // Set fixed-point notation and 9 decimal places
             std::cout << "Max asks: " << maxAskPrice << std::endl;
             std::cout << "Min asks: " << minAskPrice << std::endl;
         }
@@ -75,15 +71,12 @@ void MerkelMain::printMarketStats()
             std::cout << "No ask prices available." << std::endl;
         }
 
-        // Handle bids
+        // Handle bids (optional, if you want to display them)
         if (!bidEntries.empty())
         {
             std::cout << "Bids seen: " << bidEntries.size() << std::endl;
-
             double maxBidPrice = OrderBook::getHighPrice(bidEntries);
             double minBidPrice = OrderBook::getLowPrice(bidEntries);
-
-            std::cout << std::fixed << std::setprecision(9); // Set fixed-point notation and 9 decimal places
             std::cout << "Max bids: " << maxBidPrice << std::endl;
             std::cout << "Min bids: " << minBidPrice << std::endl;
         }
@@ -94,9 +87,38 @@ void MerkelMain::printMarketStats()
     }
 }
 
-void MerkelMain::enterOffer()
+void MerkelMain::enterAsk()
 {
-    std::cout << "Placing an ask: Enter the amount you wish to (sell)." << std::endl;
+    std::cout << "Placing an ask - enter the amount you wish to ask(sell): product, price, amount, eg ` ETH/BTC, 200, 0.5 " << std::endl;
+    std::string input;
+
+    std::getline(std::cin, input);
+
+    std::vector<std::string> tokens = CSVReader::tokenise(input, ',');
+    if (tokens.size() != 3)
+    {
+        std::cout << "Bad input: " << input << std::endl;
+        return; // Exit the function without processing the input
+    }
+    else
+    {
+        try
+        {
+            OrderBookEntry obe = CSVReader::stringsToOBE(
+                tokens[1],
+                tokens[2],
+                currentTime,
+                tokens[0],
+                OrderBookType::ask);
+            orderBook.insertOrder(obe); // Insert the order into the order book
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "MerkelMain::enterAsk Bad input" << std::endl;
+        }
+    }
+
+    // std::cout << "You entered(typed): " << input << std::endl; // delete this line
 }
 
 void MerkelMain::enterBid()
@@ -112,15 +134,30 @@ void MerkelMain::printWallet()
 void MerkelMain::gotoNextTimeframe()
 {
     std::cout << "Going to next time frame" << std::endl;
+    std::vector<OrderBookEntry> sales = orderBook.matchAsksToBids("ETH/BTC", currentTime); // Match asks to bids
+    std::cout << "Sales: " << sales.size() << std::endl;
+    for (OrderBookEntry &sale : sales)
+    {
+        std::cout << "Sale price: " << sale.price << ", amount: " << sale.amount << std::endl;
+    }
     currentTime = orderBook.getNextTime(currentTime);
 }
 
 int MerkelMain::getUserOption()
 {
-    int userOption;
-
+    int userOption = 0;
+    std::string line;
     std::cout << "Please select a choice (1-7): ";
-    std::cin >> userOption;
+    std::getline(std::cin, line);
+
+    try
+    {
+        userOption = std::stoi(line); // Convert the input to an integer
+    }
+    catch (const std::exception &e)
+    {
+        //
+    }
     std::cout << "You chose: " << userOption << std::endl;
     return userOption;
 }
@@ -142,7 +179,7 @@ void MerkelMain::processUserOption(int userOption)
     }
     if (userOption == 3)
     {
-        enterOffer();
+        enterAsk();
     }
     if (userOption == 4)
     {

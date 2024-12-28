@@ -2,7 +2,7 @@
 #include "CSVReader.hpp"
 #include <map>
 #include <iostream>
-
+#include <algorithm> // for std::sort
 /* construct, reading a csv data file */
 OrderBook::OrderBook(std::string filename)
 {
@@ -18,13 +18,15 @@ std::vector<std::string> OrderBook::getKnownProducts()
 
     for (const OrderBookEntry &e : orders)
     {
-        prodMap[e.product] = true;
+        prodMap[e.product] = true; // Adds the product name to the map and its value is set to true.
+        // The map ensures that only unique products are stored, ignoring duplicates.
     }
 
     // now flatten the map to a vector of strings
     for (auto const &e : prodMap)
     {
         products.push_back(e.first);
+        // Adds the key (product name) from prodMap to the products vector.
     }
 
     return products;
@@ -93,6 +95,72 @@ std::string OrderBook::getNextTime(std::string timestamp)
         next_timestamp = orders[0].timestamp; //-> then go back to default timestamp
     }
     return next_timestamp;
+}
+// Insert an order into the order book
+void OrderBook::insertOrder(OrderBookEntry &order)
+{
+    orders.push_back(order);
+    std::sort(orders.begin(), orders.end(), OrderBookEntry::compareByTimestamp);
+    std::cout << "Order inserted successfully!" << std::endl;
+}
+
+std::vector<OrderBookEntry> OrderBook::matchAsksToBids(std::string product, std::string timestamp)
+{
+    // asks = orderbook.asks
+    std::vector<OrderBookEntry> asks = getOrders(OrderBookType::ask,
+                                                 product,
+                                                 timestamp);
+    // bids = orderbook.bids
+    std::vector<OrderBookEntry> bids = getOrders(OrderBookType::bid,
+                                                 product,
+                                                 timestamp);
+    // sales =[]
+    std::vector<OrderBookEntry> sales; // vector to hold the sales
+
+    // sort asks lowest first
+    std::sort(asks.begin(), asks.end(), OrderBookEntry::compareByPriceAsc);
+
+    // sort bids highest first
+    std::sort(bids.begin(), bids.end(), OrderBookEntry::compareByPriceDesc);
+
+    // for ask in asks:
+    for (OrderBookEntry &ask : asks)
+    {
+        // for bid in bids:
+        for (OrderBookEntry &bid : bids)
+        {
+            // if bid.price >= ask.price: // if we have a match
+            if (bid.price >= ask.price)
+            {
+
+                OrderBookEntry sale{ask.price, 0, timestamp, product, OrderBookType::sale};
+
+                if (bid.amount == ask.amount) // if the amounts are equal
+                {
+                    sale.amount = ask.amount;
+                    sales.push_back(sale);
+                    bid.amount = 0; // set the bid amount to 0, to make sure the bid is not used again
+                    break;
+                }
+                if (bid.amount > ask.amount) // if the bid amount is greater than the ask amount
+                {
+                    sale.amount = ask.amount;
+                    sales.push_back(sale);
+                    bid.amount -= ask.amount; // bid.amount = bid.amount - ask.amount
+                    break;
+                }
+                if (bid.amount < ask.amount) // if the ask amount is greater than the bid amount
+                {
+                    sale.amount = bid.amount;
+                    sales.push_back(sale);
+                    ask.amount -= bid.amount; // ask.amount = ask.amount - bid.amount
+                    bid.amount = 0;           // set the bid amount to 0, to make sure the bid is not used again
+                    continue;                 // continue to the next bid
+                }
+            }
+        }
+    }
+    return sales;
 }
 
 double OrderBook::calculateMovingAverage(std::vector<OrderBookEntry> &orders, int timeWindow)
